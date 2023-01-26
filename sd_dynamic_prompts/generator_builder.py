@@ -16,7 +16,7 @@ from dynamicprompts.generators.magicprompt import MagicPromptGenerator
 try:
     from dynamicprompts.generators.attentiongenerator import AttentionGenerator
 except NameError:
-    from prompts.dummy_attention_generator import (
+    from sd_dynamic_prompts.dummy_attention_generator import (
         DummyAttentionGenerator as AttentionGenerator,
     )
 
