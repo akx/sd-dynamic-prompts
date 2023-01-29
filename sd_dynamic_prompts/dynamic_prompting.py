@@ -372,7 +372,6 @@ class Script(scripts.Script):
                     magic_temp_value=magic_temp_value,
                     magic_blocklist_regex=magic_blocklist_regex,
                 )
-                .set_is_dummy(False)
                 .set_unlink_seed_from_prompt(unlink_seed_from_prompt)
                 .set_seed(original_seed)
                 .set_context(p)

@@ -5,7 +5,6 @@ import logging
 from dynamicprompts.generators import (
     BatchedCombinatorialPromptGenerator,
     CombinatorialPromptGenerator,
-    DummyGenerator,
     FeelingLuckyGenerator,
     JinjaGenerator,
     PromptGenerator,
@@ -23,7 +22,6 @@ class GeneratorBuilder:
     def __init__(self, wildcard_manager, ignore_whitespace=False):
         self._wildcard_manager = wildcard_manager
 
-        self._is_dummy = False
         self._is_feeling_lucky = False
         self._is_jinja_template = False
         self._is_combinatorial = False
@@ -47,7 +45,6 @@ class GeneratorBuilder:
         logger.debug(
             f"""
         Creating generator:
-            is_dummy: {self._is_dummy}
             is_feeling_lucky: {self._is_feeling_lucky}
             enable_jinja_templates: {self._is_jinja_template}
             is_combinatorial: {self._is_combinatorial}
@@ -62,10 +59,6 @@ class GeneratorBuilder:
 
         """,
         )
-
-    def set_is_dummy(self, is_dummy=True):
-        self._is_dummy = is_dummy
-        return self
 
     def set_is_feeling_lucky(self, is_feeling_lucky=True):
         self._is_feeling_lucky = is_feeling_lucky
@@ -128,14 +121,9 @@ class GeneratorBuilder:
 
         return self
 
-    def create_generator(self):
-
-        if self._is_dummy:
-            return DummyGenerator()
-
-        elif self._is_feeling_lucky:
+    def create_generator(self) -> PromptGenerator:
+        if self._is_feeling_lucky:
             generator = FeelingLuckyGenerator()
-
         elif self._is_jinja_template:
             generator = self.create_jinja_generator(self._context)
         else:
