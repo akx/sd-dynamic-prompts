@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+import re
+
 import math
 from pathlib import Path
 from string import Template
@@ -100,6 +102,13 @@ def generate_prompts(
     all_negative_prompts = all_negative_prompts[:total_prompts]
 
     return all_prompts, all_negative_prompts
+
+
+def apply_redaction_regex(prompt_redaction_regex, prompt: str) -> str:
+    prompt = prompt_redaction_regex.sub(" ", prompt)  # Redact with a single space
+    prompt = re.sub(r"\s+", " ", prompt)  # Remove extra spaces
+    prompt = prompt.strip()  # Remove leading and trailing spaces
+    return prompt
 
 
 already_loaded = False
@@ -302,6 +311,16 @@ class Script(scripts.Script):
                     visible=False,  # For some reason, removing this line causes Auto1111 to hang
                 )
 
+                prompt_redaction_regex = gr.Textbox(
+                    label="Prompt redaction regex",
+                    value="",
+                    elem_id="prompt-redaction-regex",
+                    placeholder=(
+                        "Regular expression pattern for redacting terms out of the generated prompt. Applied case-insensitively. "
+                        "Useful for removing e.g. overly specific artist names from the prompt when magic prompt blocklists are not enough."
+                    ),
+                )
+
         return [
             is_enabled,
             is_combinatorial,
@@ -321,6 +340,7 @@ class Script(scripts.Script):
             max_generations,
             magic_model,
             magic_blocklist_regex,
+            prompt_redaction_regex,
         ]
 
     def process(
@@ -344,11 +364,18 @@ class Script(scripts.Script):
         max_generations,
         magic_model,
         magic_blocklist_regex: str | None,
+        prompt_redaction_regex: str | None,
     ):
 
         if not is_enabled:
             logger.debug("Dynamic prompts disabled - exiting")
             return p
+
+        try:
+            prompt_redaction_regex = re.compile(prompt_redaction_regex, re.IGNORECASE)
+        except re.error as e:
+            logger.error(f"Ignoring invalid prompt redaction regex: {e}")
+            prompt_redaction_regex = None
 
         ignore_whitespace = opts.dp_ignore_whitespace
 
@@ -409,6 +436,9 @@ class Script(scripts.Script):
                 original_negative_prompt,
                 num_images,
             )
+            if prompt_redaction_regex:
+                all_prompts = [apply_redaction_regex(prompt_redaction_regex, prompt) for prompt in all_prompts]
+                all_negative_prompts = [apply_redaction_regex(prompt_redaction_regex, prompt) for prompt in all_negative_prompts]
 
         except GeneratorException as e:
             logger.exception(e)
