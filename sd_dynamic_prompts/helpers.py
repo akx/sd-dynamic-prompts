@@ -48,7 +48,7 @@ def should_freeze_prompt(p):
     return p.subseed_strength > 0
 
 
-def load_magicprompt_models(modelfile: str) -> list[str]:
+def load_magicprompt_models(modelfile: Path) -> list[str]:
     try:
         models = []
         with open(modelfile) as f:
@@ -63,10 +63,8 @@ def load_magicprompt_models(modelfile: str) -> list[str]:
         return []
 
 
-def get_magicmodels_path(base_dir: str) -> str:
-    magicprompt_models_path = Path(base_dir / "config" / "magicprompt_models.txt")
-
-    return magicprompt_models_path
+def get_magicmodels_path(base_dir: Path) -> Path:
+    return Path(base_dir / "config" / "magicprompt_models.txt")
 
 
 def generate_prompts(
